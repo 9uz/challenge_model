@@ -107,7 +107,7 @@ with tab1:
     model_uploaded = uploaded_model is not None
 
     if nim and not valid_nim:
-        st.warning("⚠️ Format NIM harus terdiri dari 10 digit angka.")
+        st.warning("⚠️ Format NIM harus terdiri dari 9 digit angka.")
 
     if valid_nim and valid_inisial and model_uploaded:
         submit = st.button("✅ Submit Model")
@@ -193,15 +193,16 @@ with tab2:
         cols = ["Ranking"] + [col for col in df_nilai.columns if col != "Ranking"]
         st.dataframe(df_nilai[cols])
 
-        password_hash = st.secrets.get("DOWNLOAD_PASSWORD_HASH")
+       with st.expander("🔒 Download Rekap Data (khusus dosen)"):
+            password_hash = st.secrets.get("DOWNLOAD_PASSWORD_HASH", None)
+            salt = st.secrets.get("DOWNLOAD_SALT", "streamlit_salt").encode()
 
-        with st.expander("🔒 Download Rekap Data (khusus dosen)"):
             if not password_hash:
                 st.error("⚠️ Password untuk download belum dikonfigurasi. Hubungi admin.")
             else:
                 input_pw = st.text_input("Masukkan password untuk mengunduh data:", type="password")
                 if input_pw:
-                    input_hash = hashlib.sha256(input_pw.encode()).hexdigest()
+                    input_hash = hashlib.pbkdf2_hmac('sha256', input_pw.encode(), salt, 100000).hex()
                     if hmac.compare_digest(input_hash, password_hash):
                         csv = df_nilai[cols].to_csv(index=False).encode("utf-8")
                         st.download_button("⬇️ Download Rekap CSV", data=csv,
