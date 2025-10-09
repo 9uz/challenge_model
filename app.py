@@ -182,7 +182,7 @@ with tab2:
     st.subheader("📋 Rekap Nilai Mahasiswa")
 
     conn = get_connection()
-    df_nilai = pd.read_sql("SELECT inisial, accuracy, timestamp FROM penilaian ORDER BY accuracy DESC, timestamp ASC", conn)
+    df_nilai = pd.read_sql("SELECT nim, accuracy, timestamp FROM penilaian ORDER BY accuracy DESC, timestamp ASC", conn)
     conn.close()
 
     if df_nilai.empty:
