@@ -192,20 +192,19 @@ with tab2:
         df_nilai["Ranking"] = range(1, len(df_nilai) + 1)
         cols = ["Ranking"] + [col for col in df_nilai.columns if col != "Ranking"]
         st.dataframe(df_nilai[cols])
-
-       with st.expander("🔒 Download Rekap Data (khusus dosen)"):
-            password_hash = st.secrets.get("DOWNLOAD_PASSWORD_HASH", None)
-            salt = st.secrets.get("DOWNLOAD_SALT", "streamlit_salt").encode()
-
-            if not password_hash:
-                st.error("⚠️ Password untuk download belum dikonfigurasi. Hubungi admin.")
-            else:
-                input_pw = st.text_input("Masukkan password untuk mengunduh data:", type="password")
-                if input_pw:
-                    input_hash = hashlib.pbkdf2_hmac('sha256', input_pw.encode(), salt, 100000).hex()
-                    if hmac.compare_digest(input_hash, password_hash):
-                        csv = df_nilai[cols].to_csv(index=False).encode("utf-8")
-                        st.download_button("⬇️ Download Rekap CSV", data=csv,
-                                           file_name="rekap_nilai_mahasiswa.csv", mime="text/csv")
-                    else:
-                        st.error("❌ Password salah.")
+        with st.expander("🔒 Download Rekap Data (khusus dosen)"):
+                password_hash = st.secrets.get("DOWNLOAD_PASSWORD_HASH", None)
+                salt = st.secrets.get("DOWNLOAD_SALT", "streamlit_salt").encode()
+    
+                if not password_hash:
+                    st.error("⚠️ Password untuk download belum dikonfigurasi. Hubungi admin.")
+                else:
+                    input_pw = st.text_input("Masukkan password untuk mengunduh data:", type="password")
+                    if input_pw:
+                        input_hash = hashlib.pbkdf2_hmac('sha256', input_pw.encode(), salt, 100000).hex()
+                        if hmac.compare_digest(input_hash, password_hash):
+                            csv = df_nilai[cols].to_csv(index=False).encode("utf-8")
+                            st.download_button("⬇️ Download Rekap CSV", data=csv,
+                                               file_name="rekap_nilai_mahasiswa.csv", mime="text/csv")
+                        else:
+                            st.error("❌ Password salah.")
