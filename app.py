@@ -101,7 +101,7 @@ with tab1:
     inisial = st.text_input("Masukkan Inisial (misalnya: R. Hadi)")
     uploaded_model = st.file_uploader("📤 Upload model.pkl (Pipeline scikit-learn)", type=["pkl"])
 
-    valid_nim = nim.isdigit() and len(nim) == 10
+    valid_nim = nim.isdigit() and len(nim) == 9
     valid_inisial = len(inisial.strip()) > 0
     model_uploaded = uploaded_model is not None
 
