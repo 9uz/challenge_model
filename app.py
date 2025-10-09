@@ -13,8 +13,8 @@ import matplotlib.pyplot as plt
 # -------------------------------
 # KONFIGURASI APLIKASI
 # -------------------------------
-st.set_page_config(page_title="Penilaian Model ML Mahasiswa", layout="centered")
-st.title("📊 Penilaian Otomatis Model Machine Learning Mahasiswa")
+st.set_page_config(page_title="Penilaian Model Machine Learning Mahasiswa", layout="centered")
+st.title("📊 Model Machine Learning Mahasiswa")
 
 # -------------------------------
 # KONEKSI DATABASE MENGGUNAKAN st.secrets
