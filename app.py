@@ -191,7 +191,7 @@ with tab2:
     else:
         df_nilai["Ranking"] = range(1, len(df_nilai) + 1)
         cols = ["Ranking"] + [col for col in df_nilai.columns if col != "Ranking"]
-        st.dataframe(df_nilai[cols])
+        st.dataframe(df_nilai[["Ranking", "inisial", "accuracy", "timestamp"]])
         with st.expander("🔒 Download Rekap Data (khusus dosen)"):
                 password_hash = st.secrets.get("DOWNLOAD_PASSWORD_HASH", None)
                 salt = st.secrets.get("DOWNLOAD_SALT", "streamlit_salt").encode()
