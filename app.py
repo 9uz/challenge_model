@@ -149,7 +149,7 @@ with tab1:
                             results = X_test.copy()
                             results["Label Asli"] = y_test.values
                             results["Prediksi"] = y_pred
-                            st.dataframe(results.head(10))
+                            st.dataframe(results.head(5))
 
                             st.subheader("📄 Classification Report")
                             report = classification_report(y_test, y_pred, output_dict=False)
