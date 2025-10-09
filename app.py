@@ -2,48 +2,66 @@ import streamlit as st
 import pandas as pd
 import joblib
 import traceback
-import sqlite3
-from datetime import datetime
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-import seaborn as sns
-import matplotlib.pyplot as plt
 import time
 import hashlib
 import hmac
-import os
+import mysql.connector
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 # -------------------------------
 # KONFIGURASI APLIKASI
 # -------------------------------
-st.set_page_config(page_title="Penilaian Model Machine Learning Mahasiswa", layout="centered")
+st.set_page_config(page_title="Penilaian Model ML Mahasiswa", layout="centered")
 st.title("📊 Penilaian Otomatis Model Machine Learning Mahasiswa")
 
 # -------------------------------
-# DATABASE SETUP
+# KONEKSI DATABASE MENGGUNAKAN st.secrets
+# -------------------------------
+def get_connection():
+    config = st.secrets["mysql"]
+    return mysql.connector.connect(
+        host=config["host"],
+        user=config["user"],
+        password=config["password"],
+        database=config["database"],
+    )
+
+# -------------------------------
+# INIT DATABASE
 # -------------------------------
 def init_db():
-    conn = sqlite3.connect("penilaian.db")
+    conn = get_connection()
     c = conn.cursor()
     c.execute('''
         CREATE TABLE IF NOT EXISTS penilaian (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nim TEXT,
-            inisial TEXT,
-            accuracy REAL,
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            nim VARCHAR(20),
+            inisial VARCHAR(50),
+            accuracy FLOAT,
+            model_hash VARCHAR(64) UNIQUE,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     ''')
     conn.commit()
     conn.close()
 
-def simpan_nilai(nim, inisial, accuracy):
-    conn = sqlite3.connect("penilaian.db")
+def simpan_nilai(nim, inisial, accuracy, model_hash):
+    conn = get_connection()
     c = conn.cursor()
-    c.execute("INSERT INTO penilaian (nim, inisial, accuracy) VALUES (?, ?, ?)", (nim, inisial, accuracy))
+    c.execute("INSERT INTO penilaian (nim, inisial, accuracy, model_hash) VALUES (%s, %s, %s, %s)", (nim, inisial, accuracy, model_hash))
     conn.commit()
     conn.close()
 
-# Inisialisasi database
+def model_sudah_ada(model_hash):
+    conn = get_connection()
+    c = conn.cursor()
+    c.execute("SELECT COUNT(*) FROM penilaian WHERE model_hash = %s", (model_hash,))
+    result = c.fetchone()
+    conn.close()
+    return result[0] > 0
+
 init_db()
 
 # -------------------------------
@@ -63,13 +81,19 @@ def load_test_data():
 X_test, y_test = load_test_data()
 
 # -------------------------------
-# TABS (Mahasiswa vs Rekap Dosen)
+# Fungsi hash model
+# -------------------------------
+def hash_model(file_buffer):
+    file_buffer.seek(0)
+    bytes_data = file_buffer.read()
+    file_buffer.seek(0)
+    return hashlib.sha256(bytes_data).hexdigest()
+
+# -------------------------------
+# TABS
 # -------------------------------
 tab1, tab2 = st.tabs(["🧑‍🎓 Mahasiswa", "📋 Rekap Nilai Mahasiswa"])
 
-# -------------------------------
-# TAB 1: MAHASISWA
-# -------------------------------
 with tab1:
     st.subheader("🧑‍🎓 Input Mahasiswa")
 
@@ -77,12 +101,12 @@ with tab1:
     inisial = st.text_input("Masukkan Inisial (misalnya: R. Hadi)")
     uploaded_model = st.file_uploader("📤 Upload model.pkl (Pipeline scikit-learn)", type=["pkl"])
 
-    valid_nim = nim.isdigit() and len(nim) == 9
+    valid_nim = nim.isdigit() and len(nim) == 10
     valid_inisial = len(inisial.strip()) > 0
     model_uploaded = uploaded_model is not None
 
     if nim and not valid_nim:
-        st.warning("⚠️ Format NIM harus terdiri dari 9 digit angka.")
+        st.warning("⚠️ Format NIM harus terdiri dari 10 digit angka.")
 
     if valid_nim and valid_inisial and model_uploaded:
         submit = st.button("✅ Submit Model")
@@ -98,38 +122,43 @@ with tab1:
                             time.sleep(0.1)
                             progress_bar.progress(percent_complete)
 
-                        model = joblib.load(uploaded_model)
-                        if not hasattr(model, "predict"):
-                            raise ValueError("Model tidak memiliki metode predict(). Pastikan ini pipeline scikit-learn.")
+                        # Hash model
+                        model_hash = hash_model(uploaded_model)
 
-                        progress_bar.progress(70)
-                        y_pred = model.predict(X_test)
-                        acc = accuracy_score(y_test, y_pred)
+                        if model_sudah_ada(model_hash):
+                            st.error("❌ Model ini sudah pernah diupload sebelumnya. Upload model lain.")
+                        else:
+                            model = joblib.load(uploaded_model)
+                            if not hasattr(model, "predict"):
+                                raise ValueError("Model tidak memiliki metode predict(). Pastikan ini pipeline scikit-learn.")
 
-                        progress_bar.progress(85)
+                            progress_bar.progress(70)
+                            y_pred = model.predict(X_test)
+                            acc = accuracy_score(y_test, y_pred)
+                            progress_bar.progress(85)
 
-                        simpan_nilai(nim, inisial, acc)
+                            simpan_nilai(nim, inisial, acc, model_hash)
 
-                        progress_bar.progress(100)
+                            progress_bar.progress(100)
 
-                    st.success(f"✅ Akurasi model: {acc:.2%}")
-                    st.toast("📝 Nilai berhasil disimpan ke database.")
+                            st.success(f"✅ Akurasi model: {acc:.2%}")
+                            st.toast("📝 Nilai berhasil disimpan ke database.")
 
-                    st.subheader("🔍 Contoh Hasil Prediksi")
-                    results = X_test.copy()
-                    results["Label Asli"] = y_test.values
-                    results["Prediksi"] = y_pred
-                    st.dataframe(results.head(10))
+                            st.subheader("🔍 Contoh Hasil Prediksi")
+                            results = X_test.copy()
+                            results["Label Asli"] = y_test.values
+                            results["Prediksi"] = y_pred
+                            st.dataframe(results.head(10))
 
-                    st.subheader("📄 Classification Report")
-                    report = classification_report(y_test, y_pred, output_dict=False)
-                    st.text(report)
+                            st.subheader("📄 Classification Report")
+                            report = classification_report(y_test, y_pred, output_dict=False)
+                            st.text(report)
 
-                    st.subheader("🧮 Confusion Matrix")
-                    cm = confusion_matrix(y_test, y_pred)
-                    fig, ax = plt.subplots()
-                    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax)
-                    st.pyplot(fig)
+                            st.subheader("🧮 Confusion Matrix")
+                            cm = confusion_matrix(y_test, y_pred)
+                            fig, ax = plt.subplots()
+                            sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax)
+                            st.pyplot(fig)
 
                 except Exception as e:
                     st.error("❌ Terjadi kesalahan saat memproses model.")
@@ -137,16 +166,10 @@ with tab1:
     else:
         st.info("ℹ️ Masukkan NIM, inisial, dan upload model untuk submit.")
 
-    # -----------------------------
     # Histori nilai mahasiswa
-    # -----------------------------
     if nim and valid_nim:
-        conn = sqlite3.connect("penilaian.db")
-        df_histori = pd.read_sql_query(
-            "SELECT accuracy, timestamp FROM penilaian WHERE nim = ? ORDER BY timestamp DESC", 
-            conn, 
-            params=(nim,)
-        )
+        conn = get_connection()
+        df_histori = pd.read_sql(f"SELECT accuracy, timestamp FROM penilaian WHERE nim = %s ORDER BY timestamp DESC", conn, params=(nim,))
         conn.close()
 
         if not df_histori.empty:
@@ -155,17 +178,11 @@ with tab1:
             cols = ["Ranking"] + [col for col in df_histori.columns if col != "Ranking"]
             st.dataframe(df_histori[cols])
 
-# -------------------------------
-# TAB 2: REKAP DOSEN
-# -------------------------------
 with tab2:
     st.subheader("📋 Rekap Nilai Mahasiswa")
 
-    conn = sqlite3.connect("penilaian.db")
-    df_nilai = pd.read_sql_query(
-        "SELECT nim, accuracy, timestamp FROM penilaian ORDER BY accuracy DESC, timestamp ASC",
-        conn
-    )
+    conn = get_connection()
+    df_nilai = pd.read_sql("SELECT inisial, accuracy, timestamp FROM penilaian ORDER BY accuracy DESC, timestamp ASC", conn)
     conn.close()
 
     if df_nilai.empty:
@@ -175,12 +192,7 @@ with tab2:
         cols = ["Ranking"] + [col for col in df_nilai.columns if col != "Ranking"]
         st.dataframe(df_nilai[cols])
 
-        # Aman dengan password hash via st.secrets atau environment variable
-        password_hash = None
-        if "DOWNLOAD_PASSWORD_HASH" in st.secrets:
-            password_hash = st.secrets["DOWNLOAD_PASSWORD_HASH"]
-        else:
-            password_hash = os.environ.get("DOWNLOAD_PASSWORD_HASH")
+        password_hash = st.secrets.get("DOWNLOAD_PASSWORD_HASH")
 
         with st.expander("🔒 Download Rekap Data (khusus dosen)"):
             if not password_hash:
