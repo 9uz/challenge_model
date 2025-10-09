@@ -93,7 +93,7 @@ def hash_model(file_buffer):
 # -------------------------------
 # TABS
 # -------------------------------
-tab1, tab2 = st.tabs(["🧑‍🎓 Mahasiswa", "📋 Rekap Nilai Mahasiswa"])
+tab1, tab2 = st.tabs(["🧑‍🎓 Mahasiswa", "📋 Rekap Scoreboard Mahasiswa"])
 
 with tab1:
     st.subheader("🧑‍🎓 Input Mahasiswa")
@@ -167,7 +167,7 @@ with tab1:
     else:
         st.info("ℹ️ Masukkan NIM, inisial, dan upload model untuk submit.")
 
-    # Histori nilai mahasiswa
+    # Histori board mahasiswa
     if nim and valid_nim:
         conn = get_connection()
         df_histori = pd.read_sql(f"SELECT accuracy, timestamp FROM penilaian WHERE nim = %s ORDER BY timestamp DESC", conn, params=(nim,))
@@ -180,14 +180,14 @@ with tab1:
             st.dataframe(df_histori[cols])
 
 with tab2:
-    st.subheader("📋 Rekap Nilai Mahasiswa")
+    st.subheader("📋 Rekap Scoreboard Mahasiswa")
 
     conn = get_connection()
     df_nilai = pd.read_sql("SELECT nim, accuracy, timestamp FROM penilaian ORDER BY accuracy DESC, timestamp ASC", conn)
     conn.close()
 
     if df_nilai.empty:
-        st.info("Belum ada nilai yang tersimpan.")
+        st.info("Belum ada Scoreboard yang tersimpan.")
     else:
         df_nilai["Ranking"] = range(1, len(df_nilai) + 1)
         cols = ["Ranking"] + [col for col in df_nilai.columns if col != "Ranking"]
