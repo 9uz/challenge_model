@@ -183,15 +183,7 @@ with tab2:
     st.subheader("📋 Rekap Scoreboard Mahasiswa")
 
     conn = get_connection()
-    df_nilai = pd.read_sql(f"SELECT p.*
-FROM penilaian p
-JOIN (
-    SELECT nim, MAX(accuracy) AS best_accuracy
-    FROM penilaian
-    GROUP BY nim
-) m ON p.nim = m.nim AND p.accuracy = m.best_accuracy
-ORDER BY p.accuracy DESC, p.timestamp ASC
-", conn)
+    df_nilai = pd.read_sql(f"SELECT p.* FROM penilaian p JOIN ( SELECT nim, MAX(accuracy) AS best_accuracy FROM penilaian GROUP BY nim ) m ON p.nim = m.nim AND p.accuracy = m.best_accuracy ORDER BY p.accuracy DESC, p.timestamp ASC", conn)
     conn.close()
 
     if df_nilai.empty:
