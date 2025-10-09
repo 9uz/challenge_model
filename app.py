@@ -163,7 +163,7 @@ with tab2:
 
     conn = sqlite3.connect("penilaian.db")
     df_nilai = pd.read_sql_query(
-        "SELECT inisial, accuracy, timestamp FROM penilaian ORDER BY accuracy DESC, timestamp ASC",
+        "SELECT nim, accuracy, timestamp FROM penilaian ORDER BY accuracy DESC, timestamp ASC",
         conn
     )
     conn.close()
