@@ -15,7 +15,7 @@ import os
 # -------------------------------
 # KONFIGURASI APLIKASI
 # -------------------------------
-st.set_page_config(page_title="Penilaian Model ML Mahasiswa", layout="centered")
+st.set_page_config(page_title="Penilaian Model Machine Learning Mahasiswa", layout="centered")
 st.title("📊 Penilaian Otomatis Model Machine Learning Mahasiswa")
 
 # -------------------------------
@@ -73,16 +73,16 @@ tab1, tab2 = st.tabs(["🧑‍🎓 Mahasiswa", "📋 Rekap Nilai Mahasiswa"])
 with tab1:
     st.subheader("🧑‍🎓 Input Mahasiswa")
 
-    nim = st.text_input("Masukkan NIM (10 digit angka)")
+    nim = st.text_input("Masukkan NIM (9 digit angka)")
     inisial = st.text_input("Masukkan Inisial (misalnya: R. Hadi)")
     uploaded_model = st.file_uploader("📤 Upload model.pkl (Pipeline scikit-learn)", type=["pkl"])
 
-    valid_nim = nim.isdigit() and len(nim) == 10
+    valid_nim = nim.isdigit() and len(nim) == 9
     valid_inisial = len(inisial.strip()) > 0
     model_uploaded = uploaded_model is not None
 
     if nim and not valid_nim:
-        st.warning("⚠️ Format NIM harus terdiri dari 10 digit angka.")
+        st.warning("⚠️ Format NIM harus terdiri dari 9 digit angka.")
 
     if valid_nim and valid_inisial and model_uploaded:
         submit = st.button("✅ Submit Model")
