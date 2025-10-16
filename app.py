@@ -140,6 +140,14 @@ with tab1:
                             if not hasattr(model, "predict"):
                                 raise ValueError("Model tidak memiliki metode predict(). Pastikan ini pipeline scikit-learn.")
 
+                            # Cek apakah fitur cocok
+                            model_input_features = getattr(model, 'feature_names_in_', None)
+                            if model_input_features is not None:
+                                if list(X_test.columns) != list(model_input_features):
+                                    st.error("❌ Kolom fitur pada data test tidak sama dengan fitur saat model dilatih.\n\n"
+                                             "Harap pastikan Anda melatih model dengan dataset yang struktur kolomnya sama dengan test.csv.")
+                                    return
+
                             progress_bar.progress(70)
                             y_pred = model.predict(X_test)
                             acc = accuracy_score(y_test, y_pred)
