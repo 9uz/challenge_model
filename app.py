@@ -9,6 +9,8 @@ import mysql.connector
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 import seaborn as sns
 import matplotlib.pyplot as plt
+import sklearn
+SKLEARN_RUNTIME_VERSION = sklearn.__version__
 
 # -------------------------------
 # KONFIGURASI APLIKASI
@@ -134,9 +136,16 @@ with tab1:
                         model_hash = hash_model(uploaded_model)
 
                         if model_sudah_ada(model_hash):
-                            st.error("❌ Model ini sudah pernah diupload sebelumnya. Upload model lain.")
+                           raise ValueError("❌ Model ini sudah pernah diupload sebelumnya. Upload model lain.")
                         else:
-                            model = joblib.load(uploaded_model)
+                            try:
+                                loaded_obj = joblib.load(uploaded_model)
+                            except AttributeError as e:
+                                ##st.error("❌ Gagal memuat model: kemungkinan besar versi `scikit-learn` berbeda.")
+                                raise ValueError(f"📌 Versi `scikit-learn` di server: `{SKLEARN_RUNTIME_VERSION}`.")
+                            except Exception as e:
+                                raise ValueError("❌ Terjadi kesalahan saat memuat model.")
+                                
                             if not hasattr(model, "predict"):
                                 raise ValueError("Model tidak memiliki metode predict(). Pastikan ini pipeline scikit-learn.")
 
@@ -144,8 +153,9 @@ with tab1:
                             model_input_features = getattr(model, 'feature_names_in_', None)
                             if model_input_features is not None:
                                 if list(X_test.columns) != list(model_input_features):
-                                    st.error("❌ Kolom fitur pada data test tidak sama dengan fitur saat model dilatih.\n\n Harap pastikan Anda melatih model dengan dataset yang struktur kolomnya sama dengan test.csv.")
-                                    st.stop()
+                                    raise ValueError("❌ Kolom fitur pada data test tidak sama dengan fitur saat model dilatih.\n\n Harap pastikan Anda melatih model dengan dataset yang struktur kolomnya sama dengan test.csv.")
+
+                            
 
                             progress_bar.progress(70)
                             y_pred = model.predict(X_test)
