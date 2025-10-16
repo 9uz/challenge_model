@@ -144,8 +144,7 @@ with tab1:
                             model_input_features = getattr(model, 'feature_names_in_', None)
                             if model_input_features is not None:
                                 if list(X_test.columns) != list(model_input_features):
-                                    st.error("❌ Kolom fitur pada data test tidak sama dengan fitur saat model dilatih.\n\n"
-                                             "Harap pastikan Anda melatih model dengan dataset yang struktur kolomnya sama dengan test.csv.")
+                                    st.error("❌ Kolom fitur pada data test tidak sama dengan fitur saat model dilatih.\n\n Harap pastikan Anda melatih model dengan dataset yang struktur kolomnya sama dengan test.csv.")
                                     return
 
                             progress_bar.progress(70)
