@@ -82,6 +82,16 @@ def load_test_data():
         csv_data = StringIO(response.text)
         df = pd.read_csv(csv_data)
         X = df.drop("label", axis=1)
+        # Reindex X_test to match X_train_cols, filling missing columns with NaN
+        X_train_cols=['surgery', 'age', 'hospital_number', 'rectal_temperature', 'pulse',
+       'respiratory_rate', 'temperature_of_extremities', 'peripheral_pulse',
+       'mucous_membranes', 'capillary_refill_time', 'pain', 'peristalsis',
+       'abdominal_distension', 'packed_cell_volume', 'total_protein',
+       'outcome', 'lesion_site', 'lesion_type', 'lesion_subtype', 'cp_data',
+       'nasogastric_tube', 'nasogastric_reflux', 'nasogastric_reflux_ph',
+       'rectal_examination_feces', 'abdomen', 'abdominocentesis_appearance',
+       'abdominocentesis_total_protein']
+        X = X.reindex(columns=X_train_cols)
         y = df["label"]
         #st.success(f"Data Testing berhasil di baca dengan kolom {list(df.columns)}")
         st.success(f" Versi SKLEARN_RUNTIME {SKLEARN_RUNTIME_VERSION} ")
