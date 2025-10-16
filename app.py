@@ -141,8 +141,8 @@ with tab1:
                             raise ValueError("❌ Model ini sudah pernah diupload sebelumnya. Upload model lain.")
                         else:
                             try:
-                                model_obj = joblib.load(uploaded_model)
-                                model = model_obj["model"]
+                                model = joblib.load(uploaded_model)
+                                #model = model_obj["model"]
                             except AttributeError as e:
                                 raise ValueError(f"📌 Versi `scikit-learn` di server: `{SKLEARN_RUNTIME_VERSION}`")
                             except Exception as e:
