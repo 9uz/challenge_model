@@ -83,7 +83,7 @@ def load_test_data():
         df = pd.read_csv(csv_data)
         X = df.drop("label", axis=1)
         y = df["label"]
-        st.error(f"❌ Kolom 'label' tidak ditemukan di {list(df.columns)}")
+        st.success(f"Data Testing berhasil di baca dengan kolom {list(df.columns)}")
         return X, y
     except Exception as e:
         st.error(f"❌ Gagal memuat data test: {e}")
