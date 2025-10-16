@@ -136,7 +136,7 @@ with tab1:
                         model_hash = hash_model(uploaded_model)
 
                         if model_sudah_ada(model_hash):
-                           raise ValueError("❌ Model ini sudah pernah diupload sebelumnya. Upload model lain.")
+                            raise ValueError("❌ Model ini sudah pernah diupload sebelumnya. Upload model lain.")
                         else:
                             try:
                                 model = joblib.load(uploaded_model)
