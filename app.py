@@ -68,15 +68,22 @@ init_db()
 # -------------------------------
 # LOAD TEST DATA
 # -------------------------------
+import requests
+from io import StringIO
+
 @st.cache_data
 def load_test_data():
     try:
-        df = pd.read_csv("test.csv")
+        url = st.secrets["google_drive"]["test_csv_url"]
+        response = requests.get(url)
+        response.raise_for_status()  # untuk cek request berhasil atau tidak
+        csv_data = StringIO(response.text)
+        df = pd.read_csv(csv_data)
         X = df.drop("label", axis=1)
         y = df["label"]
         return X, y
     except Exception as e:
-        st.error("❌ Gagal memuat data test: pastikan file `test.csv` tersedia.")
+        st.error(f"❌ Gagal memuat data test: {e}")
         return None, None
 
 X_test, y_test = load_test_data()
