@@ -74,7 +74,7 @@ from io import StringIO
 @st.cache_data
 def load_test_data():
     try:
-        url = st.secrets["google_drive"]["test_csv_url"]
+        url = st.secrets.get("test_csv_url", None))
         response = requests.get(url)
         response.raise_for_status()  # untuk cek request berhasil atau tidak
         csv_data = StringIO(response.text)
