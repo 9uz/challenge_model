@@ -83,7 +83,8 @@ def load_test_data():
         df = pd.read_csv(csv_data)
         X = df.drop("label", axis=1)
         y = df["label"]
-        st.success(f"Data Testing berhasil di baca dengan kolom {list(df.columns)}")
+        #st.success(f"Data Testing berhasil di baca dengan kolom {list(df.columns)}")
+        st.success(f" Versi SKLEARN_RUNTIME {SKLEARN_RUNTIME_VERSION} ")
         return X, y
     except Exception as e:
         st.error(f"❌ Gagal memuat data test: {e}")
