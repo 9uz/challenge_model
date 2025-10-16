@@ -143,7 +143,7 @@ with tab1:
                                 model_obj = joblib.load(uploaded_model)
                                 model = model_obj["model"]
                             except AttributeError as e:
-                                raise ValueError(f"📌 Versi `scikit-learn` di server: `{SKLEARN_RUNTIME_VERSION}`, versi kamu {model_obj['sklearn_version']}")
+                                raise ValueError(f"📌 Versi `scikit-learn` di server: `{SKLEARN_RUNTIME_VERSION}`")
                             except Exception as e:
                                 raise ValueError("❌ Terjadi kesalahan saat memuat model.")
                                 
