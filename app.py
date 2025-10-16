@@ -145,7 +145,7 @@ with tab1:
                             if model_input_features is not None:
                                 if list(X_test.columns) != list(model_input_features):
                                     st.error("❌ Kolom fitur pada data test tidak sama dengan fitur saat model dilatih.\n\n Harap pastikan Anda melatih model dengan dataset yang struktur kolomnya sama dengan test.csv.")
-                                    return
+                                    st.stop()
 
                             progress_bar.progress(70)
                             y_pred = model.predict(X_test)
