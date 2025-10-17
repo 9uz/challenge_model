@@ -219,25 +219,7 @@ with tab2:
     st.subheader("📋 Rekap Scoreboard Mahasiswa")
 
     conn = get_connection()
-    df_nilai = pd.read_sql("WITH ranked_penilaian AS (SELECT
-        id,
-        nim,
-        inisial,
-        accuracy,
-        timestamp,
-        ROW_NUMBER() OVER (
-            PARTITION BY nim
-            ORDER BY accuracy DESC, timestamp ASC
-        ) AS rownum
-    FROM penilaian
-),
-final_ranking AS (
-    SELECT
-        *,
-        RANK() OVER (ORDER BY accuracy DESC, timestamp ASC) AS ranking
-    FROM ranked_penilaian
-    WHERE rownum = 1
-) SELECT * FROM final_ranking",con)
+    df_nilai = pd.read_sql("WITH ranked_penilaian AS (SELECT id, nim, inisial, accuracy, timestamp, ROW_NUMBER() OVER (PARTITION BY nim ORDER BY accuracy DESC, timestamp ASC) AS rownum FROM penilaian), final_ranking AS (SELECT *, RANK() OVER (ORDER BY accuracy DESC, timestamp ASC) AS ranking FROM ranked_penilaian WHERE rownum = 1) SELECT * FROM final_ranking",con)
     #df_nilai = pd.read_sql("SELECT p.* FROM penilaian p JOIN ( SELECT nim, MAX(accuracy) AS best_accuracy FROM penilaian GROUP BY nim ) m ON p.nim = m.nim AND p.accuracy = m.best_accuracy ORDER BY p.accuracy DESC, p.timestamp ASC", conn)
     conn.close()
 
